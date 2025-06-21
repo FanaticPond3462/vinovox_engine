@@ -11,13 +11,7 @@ from ..core.core_wrapper import CoreWrapper
 from ..metas.Metas import StyleId
 from ..utility.core_version_utility import MOCK_CORE_VERSION, get_latest_version
 from .audio_postprocessing import raw_wave_to_output_wave
-from .model import (
-    FrameAudioQuery,
-    FramePhoneme,
-    Note,
-    NoteId,
-    Score,
-)
+from .model import FrameAudioQuery, FramePhoneme, Note, NoteId, Score
 from .mora_mapping import mora_kana_to_mora_phonemes
 from .phoneme import Phoneme
 

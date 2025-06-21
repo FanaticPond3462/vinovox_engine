@@ -5,9 +5,7 @@ from numpy.typing import NDArray
 from soxr import resample
 
 from ..model import AudioQuery
-from .model import (
-    FrameAudioQuery,
-)
+from .model import FrameAudioQuery
 
 
 def raw_wave_to_output_wave(

@@ -2,16 +2,7 @@
 
 import os
 import platform
-from ctypes import (
-    CDLL,
-    POINTER,
-    _Pointer,
-    c_bool,
-    c_char_p,
-    c_float,
-    c_int,
-    c_long,
-)
+from ctypes import CDLL, POINTER, _Pointer, c_bool, c_char_p, c_float, c_int, c_long
 from ctypes.util import find_library
 from dataclasses import dataclass
 from enum import Enum, auto
@@ -94,7 +85,7 @@ class _CoreInfo:
     name: str  # Coreファイル名
     platform: Literal["Windows", "Linux", "Darwin"]  # 対応システム/OS
     arch: Literal["x64", "x86", "armv7l", "aarch64", "universal"]  # 対応アーキテクチャ
-    core_type: Literal["libtorch", "onnxruntime" , "openvino"]  # `model_type`
+    core_type: Literal["libtorch", "onnxruntime", "openvino"]  # `model_type`
     gpu_type: GPUType  # NONE | CUDA | DIRECT_ML
 
 
@@ -136,7 +127,7 @@ _CORE_INFOS = [
         core_type="onnxruntime",
         gpu_type=GPUType.NONE,
     ),
-    #OpenVINO
+    # OpenVINO
     _CoreInfo(
         name="core_openvino_x64.dll",
         platform="Windows",
@@ -340,7 +331,9 @@ def _get_suitable_core_name(
     return _get_core_name(arch_name, platform_name, model_type, gpu_type)
 
 
-def _check_core_type(core_dir: Path) -> Literal["libtorch", "onnxruntime", "openvino"] | None:
+def _check_core_type(
+    core_dir: Path,
+) -> Literal["libtorch", "onnxruntime", "openvino"] | None:
     """`core_dir`直下に存在し実行中マシンで利用可能な Core の model_type（None: 利用可能 Core 無し）"""
     libtorch_core_names = [
         _get_suitable_core_name("libtorch", gpu_type=GPUType.CUDA),
@@ -352,9 +345,7 @@ def _check_core_type(core_dir: Path) -> Literal["libtorch", "onnxruntime", "open
         _get_suitable_core_name("onnxruntime", gpu_type=GPUType.DIRECT_ML),
         _get_suitable_core_name("onnxruntime", gpu_type=GPUType.NONE),
     ]
-    openvino_core_names = [
-        _get_suitable_core_name("openvino", gpu_type=GPUType.NONE)
-    ]
+    openvino_core_names = [_get_suitable_core_name("openvino", gpu_type=GPUType.NONE)]
     if any([(core_dir / name).is_file() for name in libtorch_core_names if name]):
         return "libtorch"
     elif any([(core_dir / name).is_file() for name in onnxruntime_core_names if name]):

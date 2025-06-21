@@ -1,8 +1,6 @@
 """SongEngine のモック"""
 
-from ...tts_pipeline.song_engine import (
-    SongEngine,
-)
+from ...tts_pipeline.song_engine import SongEngine
 from ..core.mock import MockCoreWrapper
 
 

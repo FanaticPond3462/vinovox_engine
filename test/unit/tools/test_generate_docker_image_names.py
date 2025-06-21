@@ -1,8 +1,6 @@
 """`generate_docker_image_names.py` のテスト"""
 
-from tools.generate_docker_image_names import (
-    _generate_docker_image_names,
-)
+from tools.generate_docker_image_names import _generate_docker_image_names
 
 
 def test_generate_docker_image_names() -> None:

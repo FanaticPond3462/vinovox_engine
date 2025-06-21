@@ -10,10 +10,7 @@ from pyopenjtalk import tts
 from ...metas.Metas import StyleId
 from ...model import AudioQuery
 from ...tts_pipeline.audio_postprocessing import raw_wave_to_output_wave
-from ...tts_pipeline.tts_engine import (
-    TTSEngine,
-    to_flatten_moras,
-)
+from ...tts_pipeline.tts_engine import TTSEngine, to_flatten_moras
 from ..core.mock import MockCoreWrapper
 
 

@@ -43,10 +43,7 @@ from voicevox_engine.tts_pipeline.song_engine import (
     SongEngineManager,
     SongInvalidInputError,
 )
-from voicevox_engine.tts_pipeline.tts_engine import (
-    LATEST_VERSION,
-    TTSEngineManager,
-)
+from voicevox_engine.tts_pipeline.tts_engine import LATEST_VERSION, TTSEngineManager
 from voicevox_engine.utility.file_utility import try_delete_file
 
 

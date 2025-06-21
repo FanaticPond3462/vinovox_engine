@@ -15,10 +15,7 @@ from ..model import AudioQuery
 from ..utility.core_version_utility import MOCK_CORE_VERSION, get_latest_version
 from .audio_postprocessing import raw_wave_to_output_wave
 from .kana_converter import parse_kana
-from .model import (
-    AccentPhrase,
-    Mora,
-)
+from .model import AccentPhrase, Mora
 from .mora_mapping import mora_phonemes_to_mora_kana
 from .njd_feature_processor import text_to_full_context_labels
 from .phoneme import Phoneme

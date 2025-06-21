@@ -18,9 +18,7 @@ from voicevox_engine.tts_pipeline.model import (
     Note,
     Score,
 )
-from voicevox_engine.tts_pipeline.song_engine import (
-    SongEngine,
-)
+from voicevox_engine.tts_pipeline.song_engine import SongEngine
 from voicevox_engine.tts_pipeline.tts_engine import (
     TTSEngine,
     _apply_interrogative_upspeak,
