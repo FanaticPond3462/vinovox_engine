@@ -1,8 +1,9 @@
-"ユーザー辞書関連の処理"
+"""ユーザー辞書関連の処理"""
 
 import json
 import sys
 import threading
+import warnings
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any, Final, TypeVar
@@ -27,7 +28,7 @@ from .user_dict_word import (
 F = TypeVar("F", bound=Callable[..., Any])
 
 
-def mutex_wrapper(lock: threading.Lock) -> Callable[[F], F]:
+def _mutex_wrapper(lock: threading.Lock) -> Callable[[F], F]:
     def wrap(f: F) -> F:
         def func(*args: Any, **kw: Any) -> Any:
             lock.acquire()
@@ -50,7 +51,6 @@ if not save_dir.is_dir():
 # デフォルトのファイルパス
 DEFAULT_DICT_PATH: Final = resource_dir / "default.csv"  # VOICEVOXデフォルト辞書
 _USER_DICT_PATH: Final = save_dir / "user_dict.json"  # ユーザー辞書
-_COMPILED_DICT_PATH: Final = save_dir / "user.dic"  # コンパイル済み辞書
 
 
 # 同時書き込みの制御
@@ -61,31 +61,86 @@ mutex_openjtalk_dict = threading.Lock()
 _save_format_dict_adapter = TypeAdapter(dict[str, SaveFormatUserDictWord])
 
 
+def _delete_file_on_close(file_path: Path) -> None:
+    """
+    ファイルのハンドルが全て閉じたときにファイルを削除する。OpenJTalk用のカスタム辞書用。
+
+    WindowsではCreateFileW関数で`FILE_FLAG_DELETE_ON_CLOSE`を付けてすぐに閉じることで、
+    `FILE_SHARE_DELETE`を付けて開かれているファイルのハンドルが全て閉じた時に削除されるようにする。
+
+    Windows以外では即座にファイルを削除する。
+    """
+    if sys.platform == "win32":
+        import ctypes
+        from ctypes.wintypes import DWORD, HANDLE, LPCWSTR
+
+        _CreateFileW = ctypes.windll.kernel32.CreateFileW
+        _CreateFileW.argtypes = [
+            LPCWSTR,
+            DWORD,
+            DWORD,
+            ctypes.c_void_p,
+            DWORD,
+            DWORD,
+            HANDLE,
+        ]
+        _CreateFileW.restype = HANDLE
+        _CloseHandle = ctypes.windll.kernel32.CloseHandle
+        _CloseHandle.argtypes = [HANDLE]
+
+        _FILE_SHARE_DELETE = 0x00000004
+        _FILE_SHARE_READ = 0x00000001
+        _OPEN_EXISTING = 3
+        _FILE_FLAG_DELETE_ON_CLOSE = 0x04000000
+        _INVALID_HANDLE_VALUE = HANDLE(-1).value
+
+        h_file = _CreateFileW(
+            str(file_path),
+            0,
+            _FILE_SHARE_DELETE | _FILE_SHARE_READ,
+            None,
+            _OPEN_EXISTING,
+            _FILE_FLAG_DELETE_ON_CLOSE,
+            None,
+        )
+        if h_file == _INVALID_HANDLE_VALUE:
+            raise RuntimeError(
+                f"Failed to CreateFileW for {file_path}"
+            ) from ctypes.WinError()
+
+        result = _CloseHandle(h_file)
+        if result == 0:
+            raise RuntimeError(
+                f"Failed to CloseHandle for {file_path}"
+            ) from ctypes.WinError()
+    else:
+        file_path.unlink()
+
+
 class UserDictionary:
     """ユーザー辞書"""
 
+    # FIXME: OpenJTalk 用辞書の管理機能を備えているため、このクラスは Manager としても捉えられる。クラス名変更や役割分割等を検討。
     def __init__(
         self,
         default_dict_path: Path = DEFAULT_DICT_PATH,
         user_dict_path: Path = _USER_DICT_PATH,
-        compiled_dict_path: Path = _COMPILED_DICT_PATH,
     ) -> None:
         """
+        ユーザー辞書を利用可能にする。
+
         Parameters
         ----------
         default_dict_path : Path
             デフォルト辞書ファイルのパス
         user_dict_path : Path
             ユーザー辞書ファイルのパス
-        compiled_dict_path : Path
-            コンパイル済み辞書ファイルのパス
         """
         self._default_dict_path = default_dict_path
         self._user_dict_path = user_dict_path
-        self._compiled_dict_path = compiled_dict_path
         self.update_dict()
 
-    @mutex_wrapper(mutex_user_dict)
+    @_mutex_wrapper(mutex_user_dict)
     def _write_to_json(self, user_dict: dict[str, UserDictWord]) -> None:
         """ユーザー辞書データをファイルへ書き込む。"""
         save_format_user_dict: dict[str, SaveFormatUserDictWord] = {}
@@ -95,18 +150,18 @@ class UserDictionary:
         user_dict_json = _save_format_dict_adapter.dump_json(save_format_user_dict)
         self._user_dict_path.write_bytes(user_dict_json)
 
-    @mutex_wrapper(mutex_openjtalk_dict)
+    @_mutex_wrapper(mutex_openjtalk_dict)
     def update_dict(self) -> None:
         """辞書を更新する。"""
         default_dict_path = self._default_dict_path
-        compiled_dict_path = self._compiled_dict_path
+        user_dict_path = self._user_dict_path
 
         random_string = uuid4()
-        tmp_csv_path = compiled_dict_path.with_suffix(
-            f".dict_csv-{random_string}.tmp"
+        tmp_csv_path = user_dict_path.with_name(
+            f"user.dict_csv-{random_string}.tmp"
         )  # csv形式辞書データの一時保存ファイル
-        tmp_compiled_path = compiled_dict_path.with_suffix(
-            f".dict_compiled-{random_string}.tmp"
+        tmp_compiled_path = user_dict_path.with_name(
+            f"user.dict_compiled-{random_string}.tmp"
         )  # コンパイル済み辞書データの一時保存ファイル
 
         try:
@@ -115,7 +170,7 @@ class UserDictionary:
 
             # デフォルト辞書データの追加
             if not default_dict_path.is_file():
-                print("Warning: Cannot find default dictionary.", file=sys.stderr)
+                warnings.warn("Cannot find default dictionary.", stacklevel=1)
                 return
             default_dict = default_dict_path.read_text(encoding="utf-8")
             if default_dict == default_dict.rstrip():
@@ -153,18 +208,16 @@ class UserDictionary:
             tmp_csv_path.write_text(csv_text, encoding="utf-8")
 
             # 辞書.csvをOpenJTalk用にコンパイル
-            pyopenjtalk.create_user_dict(str(tmp_csv_path), str(tmp_compiled_path))
+            pyopenjtalk.mecab_dict_index(str(tmp_csv_path), str(tmp_compiled_path))
             if not tmp_compiled_path.is_file():
                 raise RuntimeError("辞書のコンパイル時にエラーが発生しました。")
 
-            # コンパイル済み辞書の置き換え・読み込み
-            pyopenjtalk.unset_user_dict()
-            tmp_compiled_path.replace(compiled_dict_path)
-            if compiled_dict_path.is_file():
-                pyopenjtalk.set_user_dict(str(compiled_dict_path.resolve(strict=True)))
+            # コンパイル済み辞書の読み込み
+            pyopenjtalk.update_global_jtalk_with_user_dict(
+                str(tmp_compiled_path.resolve(strict=True))
+            )  # NOTE: resolveによりコンパイル実行時でも相対パスを正しく認識できる
 
         except Exception as e:
-            print("Error: Failed to update dictionary.", file=sys.stderr)
             raise e
 
         finally:
@@ -172,9 +225,9 @@ class UserDictionary:
             if tmp_csv_path.exists():
                 tmp_csv_path.unlink()
             if tmp_compiled_path.exists():
-                tmp_compiled_path.unlink()
+                _delete_file_on_close(tmp_compiled_path)
 
-    @mutex_wrapper(mutex_user_dict)
+    @_mutex_wrapper(mutex_user_dict)
     def read_dict(self) -> dict[str, UserDictWord]:
         """ユーザー辞書を読み出す。"""
         # 指定ユーザー辞書が存在しない場合、空辞書を返す
@@ -193,6 +246,7 @@ class UserDictionary:
     ) -> None:
         """
         ユーザー辞書をインポートする。
+
         Parameters
         ----------
         dict_data : dict[str, UserDictWord]

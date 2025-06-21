@@ -1,5 +1,5 @@
 {
-  "brand_name": "DUMMY",
+  "brand_name": "VOICEVOX OSS",
   "default_sampling_rate": 24000,
   "dependency_licenses": [
     {
@@ -12,7 +12,7 @@
   "frame_rate": 93.75,
   "icon": "MD5:f957eb4f5daedccb4eb6a5170f384bf4",
   "manifest_version": "0.13.1",
-  "name": "DUMMY Engine",
+  "name": "VOICEVOX ENGINE OSS",
   "supported_features": {
     "adjust_intonation_scale": true,
     "adjust_mora_pitch": true,
@@ -21,6 +21,7 @@
     "adjust_pitch_scale": true,
     "adjust_speed_scale": true,
     "adjust_volume_scale": true,
+    "apply_katakana_english": true,
     "interrogative_upspeak": true,
     "manage_library": true,
     "return_resource_url": true,
@@ -30,6 +31,81 @@
   "supported_vvlib_manifest_version": null,
   "terms_of_service": "dummy teams of service",
   "update_infos": [
+    {
+      "contributors": [],
+      "descriptions": [
+        "キャラクター「離途」「黒沢冴白」を追加"
+      ],
+      "version": "0.23.1"
+    },
+    {
+      "contributors": [
+        "aoirint",
+        "Hiroshiba",
+        "HyodaKazuaki",
+        "nanae772",
+        "sabonerune",
+        "shunjilin",
+        "sigprogramming",
+        "takana-v"
+      ],
+      "descriptions": [
+        "ソング：ピッチ取得APIを追加",
+        "同一エンジンの複数同時稼働を可能に",
+        "ARM64版エンジンの提供",
+        "開発環境の向上"
+      ],
+      "version": "0.23.0"
+    },
+    {
+      "contributors": [],
+      "descriptions": [
+        "キャラクター「ぞん子」を追加"
+      ],
+      "version": "0.22.2"
+    },
+    {
+      "contributors": [],
+      "descriptions": [
+        "キャラクター「中部つるぎ」を追加"
+      ],
+      "version": "0.22.1"
+    },
+    {
+      "contributors": [
+        "aoirint",
+        "Hiroshiba",
+        "rokujyushi",
+        "sabonerune",
+        "sevenc-nanashi",
+        "takana-v",
+        "tarepan"
+      ],
+      "descriptions": [
+        "ソング対応モーラを追加",
+        "プリセットの保存先を変更",
+        "開発環境の向上"
+      ],
+      "version": "0.22.0"
+    },
+    {
+      "contributors": [],
+      "descriptions": [
+        "キャラクター「Voidoll」を追加"
+      ],
+      "version": "0.21.1"
+    },
+    {
+      "contributors": [
+        "Hiroshiba",
+        "naga-na",
+        "sabonerune"
+      ],
+      "descriptions": [
+        "開発環境の向上"
+      ],
+      "version": "0.21.0"
+    },
     {
       "contributors": [
         "Hiroshiba",
