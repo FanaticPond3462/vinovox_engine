@@ -30,7 +30,7 @@ on:
 
 env:
   VOICEVOX_RESOURCE_VERSION: "0.20.0"
-  VOICEVOX_CORE_VERSION: "0.0.1-preview-0"
+  VOICEVOX_CORE_VERSION: "0.0.2-preview.0"
 
 defaults:
   run:
