@@ -30,7 +30,7 @@ on:
 
 env:
   VOICEVOX_RESOURCE_VERSION: "0.24.0"
-  VOICEVOX_CORE_VERSION: "0.0.2-preview.0"
+  VOICEVOX_CORE_VERSION: "0.0.3-preview.0"
   VOICEVOX_VVM_VERSION: "0.1.0-tmp-song.0" # FIXME: 10期生がいない
 
 defaults:
